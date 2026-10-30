@@ -1,0 +1,37 @@
+# Keep the build context tiny: only pyproject.toml, uv.lock, README.md, and src/ are needed.
+# Without this, `docker build` would try to upload the ~8.5 GB of databases in dbs/ as
+# build context.
+
+# VCS and tooling caches
+.git/
+.ruff_cache/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+
+# Local virtualenv — the image builds its own
+.venv/
+
+# Data artifacts — databases are mounted at runtime, never copied in
+dbs/
+build_cache/
+*.sqlite
+*.sqlite-*
+*.db3
+
+# Env files (may hold host-specific settings), logs, OS/editor junk
+.env
+.env.*
+*.log
+.DS_Store
+*.swp
+
+# Docs and deployment config are not needed inside the image
+docs/
+compose*.yaml
+apache-*.conf
+dbs_verify/
+dbs_backup_*/
+
+# Handoff / scratch docs
+HANDOFF.*.md

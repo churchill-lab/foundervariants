@@ -1,0 +1,247 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="200" viewBox="0 0 880 200" role="img" aria-label="FounderVariants - DO/CC founder SNP genotypes, from the Churchill Lab at The Jackson Laboratory">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1120"/>
+      <stop offset="0.5" stop-color="#0f1d33"/>
+      <stop offset="1" stop-color="#1f1a4d"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0.80" cy="0.30" r="0.55">
+      <stop offset="0" stop-color="#39d3f2" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#39d3f2" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.70" cy="0.95" r="0.5">
+      <stop offset="0" stop-color="#a986ff" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#a986ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#c7d2fe"/>
+    </linearGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#334155" stroke-opacity="0.18" stroke-width="1"/>
+    </pattern>
+    <clipPath id="card"><rect x="0" y="0" width="880" height="200" rx="18"/></clipPath>
+  </defs>
+  <g clip-path="url(#card)">
+    <rect width="880" height="200" fill="url(#bg)"/>
+    <rect width="880" height="200" fill="url(#grid)"/>
+    <rect width="880" height="200" fill="url(#glowA)"/>
+    <rect width="880" height="200" fill="url(#glowB)"/>
+  </g>
+  <rect x="0.5" y="0.5" width="879" height="199" rx="17.5" fill="none" stroke="#3b476b" stroke-opacity="0.6"/>
+
+  <!-- Real calls: 12 distinct-pattern SNPs in Pten, chr19, GRCm39 (REL-2021). Lit = differs from B6. -->
+  <g>
+    <text x="552" y="37.1" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="600" fill="#8496ad">A/J</text>
+    <rect x="560" y="26" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.22" stroke="#ff6b6b" stroke-opacity="0.75"/>
+    <text x="570.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="1">T</text>
+    <rect x="584" y="26" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="594.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="608" y="26" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="618.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="632" y="26" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="642.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="656" y="26" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="666.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="680" y="26" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="690.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="704" y="26" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="714.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="728" y="26" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="738.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="752" y="26" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="762.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="776" y="26" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="786.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="800" y="26" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="810.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="824" y="26" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="834.5" y="37.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <text x="552" y="55.1" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="600" fill="#8496ad">B6</text>
+    <rect x="560" y="44" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="570.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="584" y="44" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="594.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="608" y="44" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="618.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="632" y="44" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="642.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="656" y="44" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="666.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="680" y="44" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="690.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="704" y="44" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="714.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="728" y="44" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="738.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="752" y="44" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="762.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="776" y="44" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="786.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="800" y="44" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="810.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="824" y="44" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="834.5" y="55.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <text x="552" y="73.1" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="600" fill="#8496ad">129</text>
+    <rect x="560" y="62" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="570.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="584" y="62" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="594.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="608" y="62" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="618.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="632" y="62" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="642.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="656" y="62" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="666.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="680" y="62" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="690.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="704" y="62" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="714.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="728" y="62" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="738.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="752" y="62" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="762.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="776" y="62" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="786.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="800" y="62" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="810.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="824" y="62" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="834.5" y="73.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <text x="552" y="91.1" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="600" fill="#8496ad">NOD</text>
+    <rect x="560" y="80" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.22" stroke="#ff6b6b" stroke-opacity="0.75"/>
+    <text x="570.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="1">T</text>
+    <rect x="584" y="80" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="594.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="608" y="80" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="618.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="632" y="80" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="642.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="656" y="80" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="666.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="680" y="80" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="690.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="704" y="80" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="714.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="728" y="80" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="738.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="752" y="80" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="762.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="776" y="80" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="786.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="800" y="80" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="810.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="824" y="80" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="834.5" y="91.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <text x="552" y="109.1" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="600" fill="#8496ad">NZO</text>
+    <rect x="560" y="98" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="570.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="584" y="98" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="594.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="608" y="98" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="618.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="632" y="98" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="642.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="656" y="98" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="666.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="680" y="98" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="690.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="704" y="98" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="714.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="728" y="98" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="738.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="752" y="98" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="762.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="776" y="98" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="786.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="800" y="98" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="810.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="824" y="98" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="834.5" y="109.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <text x="552" y="127.1" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="600" fill="#8496ad">CAST</text>
+    <rect x="560" y="116" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="570.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="584" y="116" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="594.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="608" y="116" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="618.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="632" y="116" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="642.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="656" y="116" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="666.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="680" y="116" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="690.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="704" y="116" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="714.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="728" y="116" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="738.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="752" y="116" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="762.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="776" y="116" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.22" stroke="#39d3f2" stroke-opacity="0.75"/>
+    <text x="786.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="1">C</text>
+    <rect x="800" y="116" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.22" stroke="#4ee39c" stroke-opacity="0.75"/>
+    <text x="810.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="1">A</text>
+    <rect x="824" y="116" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="834.5" y="127.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <text x="552" y="145.1" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="600" fill="#8496ad">PWK</text>
+    <rect x="560" y="134" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="570.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="584" y="134" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.22" stroke="#39d3f2" stroke-opacity="0.75"/>
+    <text x="594.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="1">C</text>
+    <rect x="608" y="134" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="618.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="632" y="134" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.22" stroke="#ff6b6b" stroke-opacity="0.75"/>
+    <text x="642.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="1">T</text>
+    <rect x="656" y="134" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="666.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="680" y="134" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="690.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="704" y="134" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="714.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="728" y="134" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.22" stroke="#4ee39c" stroke-opacity="0.75"/>
+    <text x="738.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="1">A</text>
+    <rect x="752" y="134" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="762.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="776" y="134" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.22" stroke="#39d3f2" stroke-opacity="0.75"/>
+    <text x="786.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="1">C</text>
+    <rect x="800" y="134" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.22" stroke="#4ee39c" stroke-opacity="0.75"/>
+    <text x="810.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="1">A</text>
+    <rect x="824" y="134" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.22" stroke="#39d3f2" stroke-opacity="0.75"/>
+    <text x="834.5" y="145.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="1">C</text>
+    <text x="552" y="163.1" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="600" fill="#8496ad">WSB</text>
+    <rect x="560" y="152" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="570.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="584" y="152" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.05" stroke="#ffc061" stroke-opacity="0.14"/>
+    <text x="594.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="0.35">G</text>
+    <rect x="608" y="152" width="21" height="15" rx="3.3" fill="#ffc061" fill-opacity="0.22" stroke="#ffc061" stroke-opacity="0.75"/>
+    <text x="618.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ffc061" fill-opacity="1">G</text>
+    <rect x="632" y="152" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="642.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="656" y="152" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="666.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="680" y="152" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.05" stroke="#4ee39c" stroke-opacity="0.14"/>
+    <text x="690.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="0.35">A</text>
+    <rect x="704" y="152" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="714.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="728" y="152" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="738.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="752" y="152" width="21" height="15" rx="3.3" fill="#39d3f2" fill-opacity="0.05" stroke="#39d3f2" stroke-opacity="0.14"/>
+    <text x="762.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#39d3f2" fill-opacity="0.35">C</text>
+    <rect x="776" y="152" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="786.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+    <rect x="800" y="152" width="21" height="15" rx="3.3" fill="#4ee39c" fill-opacity="0.22" stroke="#4ee39c" stroke-opacity="0.75"/>
+    <text x="810.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#4ee39c" fill-opacity="1">A</text>
+    <rect x="824" y="152" width="21" height="15" rx="3.3" fill="#ff6b6b" fill-opacity="0.05" stroke="#ff6b6b" stroke-opacity="0.14"/>
+    <text x="834.5" y="163.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" fill="#ff6b6b" fill-opacity="0.35">T</text>
+  </g>
+  <text x="845" y="184" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10.5" fill="#64748b">Pten · chr19 · GRCm39 · lit = differs from B6</text>
+
+  <text x="50" y="42" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11.5" font-weight="700" letter-spacing="1.6" fill="#7c8db0">CHURCHILL LAB · THE JACKSON LABORATORY</text>
+  <text x="48" y="86" font-family="ui-sans-serif, system-ui, -apple-system, &quot;Segoe UI&quot;, Roboto, sans-serif" font-size="44" font-weight="800" letter-spacing="-0.5" fill="url(#title)">FounderVariants</text>
+  <text x="50" y="120" font-family="ui-sans-serif, system-ui, -apple-system, &quot;Segoe UI&quot;, Roboto, sans-serif" font-size="19" font-weight="500" fill="#9aa8c4">DO/CC founder SNPs, in milliseconds</text>
+  <g transform="translate(50,146)">
+    <g transform="translate(0,0)"><rect width="68" height="30" rx="15" fill="#39d3f2" fill-opacity="0.12" stroke="#39d3f2" stroke-opacity="0.5"/><text x="34" y="20" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700" fill="#7dd3fc">GRCm38</text></g>
+    <g transform="translate(80,0)"><rect width="68" height="30" rx="15" fill="#a986ff" fill-opacity="0.12" stroke="#a986ff" stroke-opacity="0.5"/><text x="34" y="20" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700" fill="#c4b5fd">GRCm39</text></g>
+    <g transform="translate(159,0)"><rect width="68" height="30" rx="15" fill="#4ee39c" fill-opacity="0.12" stroke="#4ee39c" stroke-opacity="0.5"/><text x="34" y="20" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700" fill="#6ee7b7">R/qtl2</text></g>
+    <g transform="translate(239,0)"><rect width="102" height="30" rx="15" fill="#ffc061" fill-opacity="0.12" stroke="#ffc061" stroke-opacity="0.5"/><text x="51" y="20" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700" fill="#fcd34d">SDP · SDPN</text></g>
+  </g>
+</svg>

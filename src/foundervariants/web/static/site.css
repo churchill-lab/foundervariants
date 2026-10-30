@@ -1,0 +1,54 @@
+/* Shared by the secondary pages (linking.html, sdp.html). Tokens and theme rules are the
+   same as index.html's, which keeps its own copy. */
+:root{
+  --bg:#f6f8fb; --panel:rgba(255,255,255,.72); --edge:#d9e0ea; --ink:#0d1b2a; --dim:#5a6b80;
+  --cyan:#0a8aa6; --violet:#6b3fd4; --amber:#b5710a; --good:#0a8f5b; --bad:#c23b3b;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0a0e14; --panel:rgba(20,27,38,.72); --edge:#1e2a3a; --ink:#e6edf5; --dim:#8496ad;
+        --cyan:#39d3f2; --violet:#a986ff; --amber:#ffc061; --good:#4ee39c; --bad:#ff6b6b;}
+}
+:root[data-theme="dark"]{--bg:#0a0e14; --panel:rgba(20,27,38,.72); --edge:#1e2a3a; --ink:#e6edf5; --dim:#8496ad;
+        --cyan:#39d3f2; --violet:#a986ff; --amber:#ffc061; --good:#4ee39c; --bad:#ff6b6b;}
+:root[data-theme="light"]{--bg:#f6f8fb; --panel:rgba(255,255,255,.72); --edge:#d9e0ea; --ink:#0d1b2a; --dim:#5a6b80;
+        --cyan:#0a8aa6; --violet:#6b3fd4; --amber:#b5710a; --good:#0a8f5b; --bad:#c23b3b;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.6}
+a{color:var(--cyan);text-decoration:none} a:hover{text-decoration:underline}
+.wrap{max-width:920px;margin:0 auto;padding:14px 18px 60px}
+.cmd{position:sticky;top:0;z-index:9;display:flex;align-items:center;gap:12px;padding:10px 4px;
+     backdrop-filter:blur(8px);background:color-mix(in srgb,var(--bg) 80%,transparent);border-bottom:1px solid var(--edge)}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.5px}
+.brand b{color:var(--cyan)} .brand i{color:var(--violet);font-style:normal}
+.brand:hover{text-decoration:none}
+.spacer{flex:1}
+#theme{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;line-height:0;
+       cursor:pointer;color:var(--ink);background:var(--panel);border:1px solid var(--edge);border-radius:8px}
+#theme:hover{border-color:var(--cyan)}
+#theme svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#theme .ico-moon{display:none} #theme .ico-sun{display:block}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme]) #theme .ico-sun,:root[data-theme="dark"] #theme .ico-sun{display:none}
+  :root:not([data-theme]) #theme .ico-moon,:root[data-theme="dark"] #theme .ico-moon{display:block}
+}
+:root[data-theme="dark"] #theme .ico-sun{display:none} :root[data-theme="dark"] #theme .ico-moon{display:block}
+:root[data-theme="light"] #theme .ico-sun{display:block} :root[data-theme="light"] #theme .ico-moon{display:none}
+
+/* the rendered document */
+.doc{margin-top:18px}
+.doc h1{font-size:20px;margin:18px 0 10px}
+.doc h2{font-size:16px;margin:30px 0 8px;padding-top:6px;border-top:1px solid var(--edge)}
+.doc h3{font-size:14px;margin:22px 0 6px;color:var(--violet)}
+.doc p,.doc li{max-width:78ch}
+.doc hr{border:0;border-top:1px solid var(--edge);margin:22px 0}
+.doc code{font-family:var(--mono);font-size:12px;background:var(--panel);border:1px solid var(--edge);
+          border-radius:5px;padding:0 4px}
+.doc pre{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:10px 12px;overflow-x:auto}
+.doc pre code{border:0;padding:0;background:none}
+.doc table{border-collapse:collapse;display:block;overflow-x:auto;font-size:12px;margin:8px 0}
+.doc th,.doc td{border:1px solid var(--edge);padding:5px 8px;text-align:left;vertical-align:top}
+.doc th{color:var(--dim);font-weight:600;background:var(--panel)}
+.doc :target{scroll-margin-top:64px}
+.status{color:var(--dim);padding:26px 0}
+.cmd a.cur{color:var(--ink)}

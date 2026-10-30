@@ -1,0 +1,41 @@
+# Run the FounderVariants API behind a reverse proxy (Apache strips the base path and
+# forwards here).
+#
+#   docker compose up --build          # build the image and start the service
+#   docker compose up -d               # start detached
+#
+# Settings come from a local .env file (see .env.example); every value has a safe default
+# so the service also runs with no .env at all.
+services:
+  foundervariants:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${IMAGE_NAME:-churchilllab/foundervariants:0.1.6}
+    # Target runtime platform; the churchilllab server is linux/amd64.
+    platform: ${PLATFORM:-linux/amd64}
+    environment:
+      FV_DB_DIR: ${FV_DB_DIR:-/data/dbs}
+      # Reverse-proxy prefix for URL generation; empty when served at the domain root.
+      FV_BASE_PATH: ${FV_BASE_PATH:-}
+      # Comma-separated allowed CORS origins; empty allows all.
+      FV_CORS_ORIGINS: ${FV_CORS_ORIGINS:-}
+      # Log level (DEBUG/INFO/WARNING/...); database discovery logs at INFO.
+      FV_LOG_LEVEL: ${FV_LOG_LEVEL:-INFO}
+    volumes:
+      # Host databases mounted READ-ONLY — the app opens them with SQLite's `immutable=1`
+      # and never writes. Discovery runs once at startup, so `docker compose restart` is
+      # required after adding or replacing a .sqlite file here.
+      - ${HOST_DB_DIR:-./dbs}:${FV_DB_DIR:-/data/dbs}:ro
+    ports:
+      # host:container — Apache proxies to the host port (default 28224).
+      - "${HOST_PORT:-28224}:8000"
+    restart: unless-stopped
+    healthcheck:
+      # Hit /health with the interpreter already in the image (no curl in slim).
+      # /health touches no database, so it stays instant regardless of database size.
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

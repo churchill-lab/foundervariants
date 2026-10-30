@@ -1,0 +1,28 @@
+.venv/
+__pycache__/
+*.pyc
+.ruff_cache/
+.pytest_cache/
+.DS_Store
+.env
+
+# Built databases (multi-GB; never committed)
+dbs/
+*.sqlite
+*.db3
+
+# Build/serve logs
+*.log
+
+# Verification output from scripts/rebuild_verify.sh
+dbs_verify/
+
+# Pre-swap production databases (2026-08-03) — superseded, kept for rollback
+dbs_backup_*/
+server-bundle/.env
+
+# Internal session-handoff notes (not for the public repo)
+HANDOFF.*.md
+
+# Site-specific originals of deployment files (real host names/paths)
+ops-private/
