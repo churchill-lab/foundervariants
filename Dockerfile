@@ -26,7 +26,9 @@ WORKDIR /app
 
 # Install dependencies first, in their own layer, so they stay cached until the lockfile
 # changes — editing source below does not re-resolve or re-download the dependency tree.
-COPY pyproject.toml uv.lock README.md ./
+# LICENSE is required: pyproject.toml reads `license = {file = "LICENSE"}`, so the build
+# backend fails without it. NOTICE travels with it (Apache-2.0 attributions).
+COPY pyproject.toml uv.lock README.md LICENSE NOTICE ./
 RUN --mount=from=ghcr.io/astral-sh/uv:latest,source=/uv,target=/usr/local/bin/uv \
     uv sync --frozen --no-install-project --no-dev
 
