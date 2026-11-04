@@ -13,8 +13,10 @@ They are NOT in this bundle and are never baked into the image.
 FULL WALKTHROUGH: docs/DEPLOYMENT.md in the repo (steps 5-8).
 
 THE IMAGE IS ON DOCKER HUB
-  churchilllab/foundervariants:0.1.6
-  linux/amd64, 58.2 MB, digest sha256:95e67f8ffca376b97549ceea0582cb4e
+  churchilllab/foundervariants:0.2.0
+  linux/amd64, 55.4 MB, digest sha256:4aea2aae4f1abafaf52199cda954e2657f5d424796f904264502833d7a8214ca
+  Needs schema compact-v2 databases for the gene features (it still serves older files,
+  with one gene per SNP).
   compose.prod.yaml sets pull_policy: always, so `up -d` fetches it.
   If the repo is private, run `docker login` on the server first.
 

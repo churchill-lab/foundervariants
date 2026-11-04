@@ -7,6 +7,14 @@ the chronology, so those documents do not have to read like a diary.
 
 ## 2026-11-04 (0.2.0): every gene per SNP (schema compact-v2)
 
+Published `churchilllab/foundervariants:0.2.0` (linux/amd64, 55.4 MB, digest
+`sha256:4aea2aae…`). Smoke-tested on the image against the compact-v2 databases: `/health`
+reports 0.2.0 and both releases, genes and "+N" on rs37654964, 409 for `U6`, NDJSON
+export, `LICENSE`/`NOTICE` present. The image build had been broken since the license
+was added (`pyproject.toml` reads `LICENSE`, which the Dockerfile didn't copy); fixed.
+Both databases were rebuilt to compact-v2 and copied to the server (SHA-256 verified).
+The 0.1.6 image serves them unchanged until the image is switched.
+
 ### Added: every gene at a SNP, each with its own consequence
 
 `variants` stores one gene per SNP, the gene of the single most severe consequence. Genes
