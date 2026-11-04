@@ -7,14 +7,14 @@
 #
 # Publish the image from a development machine first (the server is linux/amd64):
 #
-#   docker buildx build --platform linux/amd64 -t churchilllab/foundervariants:0.1.6 --push .
+#   docker buildx build --platform linux/amd64 -t churchilllab/foundervariants:0.2.0 --push .
 #
 # Settings come from a local .env file (see .env.example). Every value has a default here
 # EXCEPT the databases, which must exist on the host: HOST_DB_DIR is mounted read-only and
 # the service has nothing to serve without it.
 services:
   foundervariants:
-    image: ${IMAGE_NAME:-churchilllab/foundervariants:0.1.6}
+    image: ${IMAGE_NAME:-churchilllab/foundervariants:0.2.0}
     # Always re-pull on `up`, so redeploying a moved tag picks up the new image.
     pull_policy: always
     platform: ${PLATFORM:-linux/amd64}

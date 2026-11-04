@@ -5,4 +5,4 @@ The read side (`foundervariants.query`) is usable as a library against a built
 `sqlite3`. The VCF build pipeline (the `build` extra) is a separate concern.
 """
 
-__version__ = "0.1.6"
+__version__ = "0.2.0"

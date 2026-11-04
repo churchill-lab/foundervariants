@@ -100,7 +100,7 @@ They are checked in this order, and the first one present wins.
 |---|---|---|
 | `q` | `q=19:5.0-5.2Mb` | exactly what a user would type in the search box: a region, gene symbol or rsID |
 | `region` | `region=11:100.5-102Mb` | a region |
-| `gene` | `gene=Pten` | a gene's full span (symbol, case-insensitive) |
+| `gene` | `gene=Pten` | a gene's full span: a symbol (case-insensitive) or an Ensembl gene ID (`gene=ENSMUSG00000013663`). A symbol naming several loci (e.g. `U6`) shows them to pick from, so link by Ensembl ID when a symbol isn't unique |
 | `rsid` | `rsid=rs30847235` | one SNP |
 | `chr` + `pos` (+ `window`) | `chr=10&pos=128350502&window=1Mb` | `pos ± window`; **`pos` is also marked** (below). `window` defaults to **50 kb** |
 | `chr` + `start` + `end` | `chr=11&start=100.5Mb&end=102Mb` | that range |

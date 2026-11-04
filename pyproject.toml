@@ -1,6 +1,6 @@
 [project]
 name = "foundervariants"
-version = "0.1.6"
+version = "0.2.0"
 description = "Fast local DO/CC founder SNP genotypes (SDP/SDPN), built from Sanger VCFs into one compact SQLite per genome build that is also a drop-in R/qtl2 variant database."
 readme = "README.md"
 requires-python = ">=3.12"

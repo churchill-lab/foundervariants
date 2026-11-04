@@ -32,7 +32,8 @@
 **FounderVariants**, from the Churchill Lab at The Jackson Laboratory, answers one question fast: *what does each of the eight
 Diversity Outbred / Collaborative Cross founders carry across this locus?* Ask by
 region, gene or rsID and get every founder's base at every SNP, with its strain
-distribution pattern, VEP consequence and gene. Results come back in milliseconds, as a
+distribution pattern, VEP consequence, and every gene it falls in or near, with the
+consequence in each. Results come back in milliseconds, as a
 web UI, an HTTP API, or a Python library.
 
 The data comes from the Sanger Mouse Genomes **VCFs**, reduced to the 8 founders and built
@@ -153,14 +154,14 @@ call is all R/qtl2 needs. This has been verified at full scale in real R on both
 | parameter | example | meaning |
 |---|---|---|
 | `region` | `19:5.0-5.2Mb` | a range in bp, or with `kb`/`Mb` suffixes (selector) |
-| `gene` | `Pten` | a gene symbol, resolved locally to its span (selector) |
+| `gene` | `Pten` | a gene symbol or Ensembl ID, resolved locally to its span (selector). A symbol naming several loci gets `409` with the candidates |
 | `rsid` | `rs30847235` | a single dbSNP id (selector) |
 | `consequence` | `missense_variant,stop_gained` | carries *any* of these terms, as one bitwise test against `csq_mask` rather than a join |
 | `low_confidence` | `true` | include sites where some founder's Sanger `FI` flag is low (the default is high-confidence only) |
 | `private_to` | `WSB_EiJ` | that founder differs from all seven others |
 | `differ` | `CAST_EiJ,PWK_PhJ` | those founders carry different bases |
 | `sdpn` | `43682` | an exact strain-distribution pattern |
-| `format` | `csv` · `tsv` · `json` | download the result as a file, with one column per founder |
+| `format` | `csv` · `tsv` · `json` · `ndjson` | download the result as a file: CSV/TSV with one column per founder, or JSON / JSON Lines with each variant's genes and consequences nested |
 
 Other endpoints are `/health`, `/genomes`, `/{release}/meta`, `/{release}/so_terms`,
 `/{release}/genes?q=Pt` (autocomplete) and `/{release}/download/rqtl2` (the database file
@@ -313,7 +314,7 @@ src/foundervariants/
   schema.py   DDL for the one artifact: the served + R/qtl2 SQLite
   build.py    VCF -> that SQLite, in one streaming pass (cyvcf2)
   query.py    read side; pure sqlite3, and the public library API
-  api.py      FastAPI app: discovery, endpoints, csv/tsv/json export, R/qtl2 download
+  api.py      FastAPI app: discovery, endpoints, csv/tsv/json/ndjson export, R/qtl2 download
   cli.py      build / serve
   web/        the UI (vanilla JS, no build step), /linking and /sdp pages, vendored assets
 tests/        pytest suite (fixture DBs built from schema.py)

@@ -88,6 +88,29 @@ tbody tr:hover{background:color-mix(in srgb,var(--cyan) 8%,transparent)}
 .fnd.lc{opacity:.45;font-style:italic}
 .b-A{color:var(--good)} .b-C{color:var(--cyan)} .b-G{color:var(--amber)} .b-T{color:var(--bad)}
 .part{color:var(--violet)} .csq{color:var(--amber)}
+.gn{font-style:italic} .gn.near{opacity:.55} .gn.self{font-weight:700}
+.tip{position:fixed;z-index:50;pointer-events:none;min-width:200px;max-width:380px;padding:9px 11px;font-size:12px;
+     background:var(--bg);color:var(--ink);border:1px solid var(--edge);border-radius:9px;box-shadow:0 8px 28px rgba(0,0,0,.22)}
+.tip .t-title{font-weight:700;font-size:13px;margin-bottom:5px}
+.tip .t-dim,.tip .t-id,.tip .t-sub{color:var(--dim);font-weight:400}
+.tip .t-row{display:flex;justify-content:space-between;gap:14px;color:var(--dim);line-height:1.55}
+.tip .t-row b{color:var(--ink);font-weight:600;text-align:right}
+.tip .t-row>span{white-space:nowrap}
+.tip .t-sep{border-top:1px solid var(--edge);margin:6px 0}
+.tip .t-sub{font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin:2px 0 3px}
+.tip .t-more{color:var(--dim);font-size:11px;line-height:1.4;margin:1px 0 2px}
+.tip .t-gene{padding:3px 0;border-top:1px dashed var(--edge)} .tip .t-gene:first-of-type{border-top:0}
+.tip .t-gene.near{opacity:.6} .tip .t-gene.self i{font-weight:700}
+.tip .t-id{font-size:10px}
+.tip .t-text{max-width:300px;white-space:normal;line-height:1.45}
+.tip .t-base{font-weight:600}
+.imp-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px;background:var(--dim)}
+.imp-high{background:var(--bad)} .imp-moderate{background:var(--amber)} .imp-low{background:var(--good)}
+th.colhl{color:var(--ink);background:color-mix(in srgb,var(--cyan) 16%,var(--panel))}
+.more,.other{color:var(--dim)} .more{cursor:help}
+.loci{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+.locus{font-size:11px;padding:3px 8px;text-transform:none;letter-spacing:0}
+.empty .sub{font-size:11px;margin-top:8px}
 .num{display:inline-block;min-width:3.4em;text-align:right;color:var(--dim);margin-right:.5em}
 .badge{font-size:10px;padding:1px 6px;border-radius:5px;border:1px solid var(--edge);color:var(--dim)}
 .hc-no{color:var(--amber)}
@@ -168,7 +191,7 @@ tbody tr.mark td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
     <label>private to<span class="grp"><select id="priv" class="fsel"><option value="">—</option></select></span></label>
     <label>SDPN =<span class="grp"><input id="sdpn" type="number" style="width:100px" placeholder="e.g. 43658"><button type="button" id="sdpcalcbtn" title="Work out an SDPN from the founders' bases">SDP calc</button></span></label>
     <div class="dl">
-      <button data-fmt="csv">CSV</button><button data-fmt="tsv">TSV</button><button data-fmt="json">JSON</button>
+      <button data-fmt="csv">CSV</button><button data-fmt="tsv">TSV</button><button data-fmt="json">JSON</button><button data-fmt="ndjson" title="JSON Lines: one variant per line, with its genes and consequences">NDJSON</button>
     </div>
   </div>
 
@@ -299,7 +322,16 @@ let TYPED=null;          // the debounced onType, cancellable
 let MARK=new Set(), MARK_Q="", SCROLLED=false, LINKWARN="";  // link marks/warnings live until the search text changes
 const $=s=>document.querySelector(s);
 
-async function j(url){const r=await fetch(BASE+url);if(!r.ok)throw new Error((await r.json()).detail||r.status);return r.json();}
+async function j(url){
+  const r=await fetch(BASE+url);
+  if(!r.ok){
+    let d=null;try{d=(await r.json()).detail;}catch(_){}
+    // detail is a string, or an object with .message (a 409 ambiguous gene also lists candidates)
+    const e=new Error((typeof d==="string"?d:d&&d.message)||String(r.status));
+    e.status=r.status;e.detail=d;throw e;
+  }
+  return r.json();
+}
 
 // ---- init ----
 (async function(){
@@ -340,6 +372,11 @@ async function j(url){const r=await fetch(BASE+url);if(!r.ok)throw new Error((aw
     if(!a||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0)return;
     e.preventDefault();openSdpCalc(+a.dataset.sdpn);
   });
+  // hover card: follows the pointer over cells; gone when it leaves, scrolls or clicks
+  $("#tbl").addEventListener("mousemove",onTableMove);
+  $("#tbl").addEventListener("mouseleave",hideTip);
+  addEventListener("scroll",hideTip,{passive:true,capture:true});
+  $("#tbl").addEventListener("click",hideTip);
   neural();
   if($("#q").value)run();
 })();
@@ -421,6 +458,7 @@ async function loadRelease(){
   // consequence multi-select (skip legacy junk terms: score<0 / null display)
   const so=await j(`/${RELEASE}/so_terms`);
   const list=$("#csqlist");list.innerHTML="";
+  TERMS={};for(const t of so.data)TERMS[t.term]={display:t.display,impact:t.impact};  // for the hover card
   for(const t of so.data){
     if(t.score<0 || !t.display || t.display==="(null)") continue;
     const lab=document.createElement("label");
@@ -454,12 +492,14 @@ function showAC(genes){
   const box=$("#aclist");
   if(!genes.length){hideAC();return;}
   box.innerHTML="";AC_IDX=-1;
+  // a symbol listed twice names two loci: picking one searches its Ensembl ID instead
+  const n={};for(const g of genes){const k=g.symbol.toLowerCase();n[k]=(n[k]||0)+1;}
   genes.forEach((g,i)=>{const d=document.createElement("div");d.className="acitem";
     d.id=`ac-${i}`;d.setAttribute("role","option");d.setAttribute("aria-selected","false");
     d.innerHTML=`<span>${g.symbol}</span><small>${g.chr}:${(g.start/1e6).toFixed(2)}Mb</small>`;
-    d.dataset.symbol=g.symbol;
+    d.dataset.symbol=n[g.symbol.toLowerCase()]>1?g.ensembl_id:g.symbol;
     d.onmouseenter=()=>selAC(i);          // mouse and keyboard share one highlight
-    d.onclick=()=>pickAC(g.symbol);box.appendChild(d);});
+    d.onclick=()=>pickAC(d.dataset.symbol);box.appendChild(d);});
   box.style.display="block";$("#q").setAttribute("aria-expanded","true");
 }
 function hideAC(){
@@ -519,41 +559,179 @@ async function run(){
     const r=await j(`/${RELEASE}/variants?`+p.toString());
     if(seq!==SEQ)return;
     $("#meter").textContent=`${Math.round(performance.now()-t0)} ms`;
-    render(r.data.variants);
-  }catch(e){if(seq!==SEQ)return;render([],e.message);}
+    render(r.data.variants,null,r.data.gene||null);
+  }catch(e){
+    if(seq!==SEQ)return;
+    if(e.status===409&&e.detail&&e.detail.candidates)showAmbiguous(e.detail);
+    else render([],e.message);
+  }
+}
+// A symbol naming several loci (U6 names 486): list them; a pick searches by Ensembl ID.
+function showAmbiguous(d){
+  render([],"");
+  const empty=$("#empty");
+  empty.innerHTML=`<div>${esc(d.symbol)} names ${d.total.toLocaleString()} loci. Pick one:</div><div class=loci></div>`+
+    (d.total>d.candidates.length?`<div class=sub>the first ${d.candidates.length}, in genome order; search a region to reach the others</div>`:"");
+  const box=empty.querySelector(".loci");
+  for(const g of d.candidates){
+    const b=document.createElement("button");b.className="locus";b.type="button";
+    b.textContent=`chr${g.chr}:${(g.start/1e6).toFixed(3)}Mb`;b.title=g.ensembl_id;
+    b.onclick=()=>{$("#q").value=g.ensembl_id;run();};
+    box.appendChild(b);
+  }
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+// Gene column: every gene VEP annotated at the SNP, most severe first (genes the SNP is
+// inside always outrank ones it's only near). The first few by symbol, the rest as "+N".
+// Details live in the hover card (below), not in title attributes.
+const GENES_SHOWN=2;
+function geneLink(g,self){
+  return `<a class="gn${g.near?" near":""}${self?" self":""}" href="https://www.ensembl.org/Mus_musculus/Gene/Summary?g=${g.gene_id}" target=_blank>${esc(g.symbol||g.gene_id)}</a>`;
+}
+function geneCell(v,gene){
+  const gs=v.genes||[];
+  const own=gene?gene.ensembl_id:null;
+  const shown=gs.slice(0,GENES_SHOWN).map(g=>geneLink(g,g.gene_id===own)).join(", ");
+  const rest=gs.length-GENES_SHOWN;
+  return shown+(rest>0?` <span class=more>+${rest}</span>`:"");
+}
+// Consequence column. A region search shows the SNP's most severe effect. A gene search
+// shows the effect IN the searched gene, plus the most severe one when that's elsewhere,
+// so a missense in an overlapping gene can't pass for a missense in this one.
+// "+N": the other terms, as MUSTER shows "Synonymous variant +5"; the card lists them.
+function plusTerms(terms){
+  const n=(terms||[]).length-1;
+  return n>0?` <span class=more>+${n}</span>`:"";
+}
+function csqCell(v,gene){
+  if(!gene)return v.max_csq?v.max_csq+plusTerms(v.consequences):"";
+  const g=(v.genes||[]).find(x=>x.gene_id===gene.ensembl_id);
+  const sym=esc(gene.symbol||gene.ensembl_id);
+  let html=g?g.consequence+plusTerms(g.consequences):`<span class=other>— not in ${sym}</span>`;
+  if(v.max_csq&&(!g||g.consequence!==v.max_csq)){
+    const top=(v.genes||[])[0], where=top?esc(top.symbol||top.gene_id):"";
+    html+=` <span class=other>· more severe${where?` in <i>${where}</i>`:""}</span>`;
+  }
+  return html;
 }
 
-function render(vars,err){
+// ---- hover card (after MUSTER's): one floating element, built from the row's data ------
+// Instant, styled, and per column: a founder's call, the SNP's consequences gene by gene,
+// or the SDP/SDPN split. Rows carry data-i (index into ROWS); cells carry data-k (kind).
+let ROWS=[], ROWGENE=null, TERMS={};
+const TIP=document.createElement("div");TIP.className="tip";TIP.hidden=true;TIP.setAttribute("role","tooltip");
+document.body.appendChild(TIP);
+const LETTERS="ABCDEFGH";
+const fullName=f=>f.replace("_","/");                      // CAST_EiJ -> CAST/EiJ
+const termName=t=>esc((TERMS[t]&&TERMS[t].display)||t);
+const impactOf=t=>(TERMS[t]&&TERMS[t].impact)||"";
+const dot=imp=>`<i class="imp-dot imp-${(imp||"none").toLowerCase()}"></i>`;
+const row=(k,v)=>`<div class=t-row><span>${k}</span><b>${v}</b></div>`;
+function tipGenes(v,own){
+  const gs=v.genes||[];
+  if(!gs.length)return `<div class=t-sub>No gene: ${v.max_csq?termName(v.max_csq).toLowerCase():"not annotated"}</div>`;
+  const MAX=8, more=gs.length-MAX;   // a dense locus has up to 27; keep the card on screen
+  return gs.slice(0,MAX).map(g=>`<div class="t-gene${g.near?" near":""}${g.gene_id===own?" self":""}">`+
+    `<div class=t-row><span><i>${esc(g.symbol||g.gene_id)}</i>${g.near?" · nearby":""}</span><b>${dot(g.impact)}${termName(g.consequence)}</b></div>`+
+    (g.consequences.length>1?`<div class=t-more>${g.consequences.slice(1).map(termName).join(" · ")}</div>`:"")+
+    `<div class=t-id>${g.gene_id}</div></div>`).join("")+
+    (more>0?`<div class=t-more>+${more} more (all in the CSV/TSV/JSON/NDJSON export)</div>`:"");
+}
+function tipHtml(v,k){
+  const site=`${v.chr}:${v.pos.toLocaleString("en-US")}`;
+  if(k&&k.startsWith("f:")){
+    const f=k.slice(2), b=v.founders[f], lc=v.low_conf_founders.includes(f);
+    const kind=b==="."?"no call":b===v.ref?"reference":"alternate";
+    return `<div class=t-title>${fullName(f)}</div>`+
+      row(`<span class="t-base b-${b}">${kind}</span>`,b)+
+      row("Confidence",lc?"low (Sanger FI=0)":"high")+
+      row("Site",site)+row("Alleles",esc(v.alleles))+row("Reference",v.ref)+row("Variant",esc(v.variants_id))+
+      `<div class=t-sep></div>`+
+      (v.max_csq?row("Consequence",`${dot(impactOf(v.max_csq))}${termName(v.max_csq)}`)+
+        row("Gene",v.gene_symbol?`<i>${esc(v.gene_symbol)}</i>`:(v.gene_id||"—"))+
+        ((v.genes||[]).length>1?`<div class=t-more>+${v.genes.length-1} more gene${v.genes.length>2?"s":""}: hover the genes column</div>`:"")
+       :row("Consequence","—"));
+  }
+  if(k==="csq"||k==="genes"){
+    const own=ROWGENE?ROWGENE.ensembl_id:null;
+    return `<div class=t-title>${esc(v.variants_id)} <span class=t-dim>${site}</span></div>`+
+      (v.high_confidence?"":row("◔ Low confidence",v.low_conf_founders.map(f=>SHORT[f]).join(", ")))+
+      (v.max_csq?row("Most severe",`${dot(impactOf(v.max_csq))}${termName(v.max_csq)}`):"")+
+      ((v.consequences||[]).length>1?`<div class=t-more>${v.consequences.slice(1).map(termName).join(" · ")}</div>`:"")+
+      `<div class=t-sep></div><div class=t-sub>By gene, most severe first</div>`+tipGenes(v,own);
+  }
+  if(k==="sdp"||k==="sdpn"){
+    const [maj,min]=String(k==="sdp"?v.sdp_partition:v.sdpn_display).split(":");
+    const names=s=>[...(s||"")].map(c=>SHORT[FOUNDERS[LETTERS.indexOf(c)]]||c).join(", ");
+    const groups=(k==="sdp"?v.sdp_partition:v.sdpn_display).split(":");
+    return `<div class=t-title>${k==="sdp"?"SDP":"SDPN"} ${k==="sdp"?v.sdp:v.sdpn}</div>`+
+      (k==="sdp"?row("Major allele",names(maj))+row("Minor allele",names(min))
+                :groups.map((g,i)=>row(`Allele ${i+1}`,names(g))).join("")+row("Founder bases",v.sdpn_seq))+
+      `<div class=t-more>Click to open it in the SDP calculator</div>`;
+  }
+  return "";
+}
+function placeTip(e){
+  const pad=14, w=TIP.offsetWidth, h=TIP.offsetHeight;
+  TIP.style.left=Math.max(8,Math.min(innerWidth-w-8,e.clientX+pad))+"px";
+  TIP.style.top=Math.max(8,e.clientY+pad+h>innerHeight-8?e.clientY-h-pad:e.clientY+pad)+"px";
+}
+let TIPCELL=null;
+function hideTip(){TIP.hidden=true;TIPCELL=null;document.querySelectorAll("#tbl th.colhl").forEach(t=>t.classList.remove("colhl"));}
+function onTableMove(e){
+  const td=e.target.closest("td[data-k],th[data-tip]");
+  if(!td){hideTip();return;}
+  if(td!==TIPCELL){
+    TIPCELL=td;
+    document.querySelectorAll("#tbl th.colhl").forEach(t=>t.classList.remove("colhl"));
+    let html;
+    if(td.tagName==="TH")html=`<div class=t-text>${esc(td.dataset.tip)}</div>`;
+    else{
+      const tr=td.parentElement, v=ROWS[+tr.dataset.i];
+      html=v?tipHtml(v,td.dataset.k):"";
+      if(td.dataset.k.startsWith("f:"))$("#tbl thead tr").children[td.cellIndex].classList.add("colhl");  // crosshair
+    }
+    if(!html){hideTip();return;}
+    TIP.innerHTML=html;TIP.hidden=false;
+  }
+  placeTip(e);
+}
+
+function render(vars,err,gene=null){
   const thead=$("#tbl thead"), tb=$("#tbl tbody"), empty=$("#empty");
+  hideTip();ROWS=vars;ROWGENE=gene;   // a card from the previous result would be wrong
   if(MARK.size)showNote();
   if(err){empty.style.display="block";empty.textContent="⚠ "+err;thead.innerHTML="";tb.innerHTML="";$("#count").textContent="";return;}
   if(!vars.length){empty.style.display="block";empty.textContent="No variants match.";thead.innerHTML="";tb.innerHTML="";$("#count").textContent="";return;}
   empty.style.display="none";
   $("#count").textContent=`${vars.length}${vars.length>=LIMIT?"+ (capped)":""}`;
   thead.innerHTML="<tr><th>variant</th><th>location</th>"+
-    `<th><a href="${BASE}/sdp" target=_blank title="What is SDP?">SDP</a></th>`+
-    `<th><a href="${BASE}/sdp" target=_blank title="What is SDPN?">SDPN</a></th><th>ref</th>`+
-    FOUNDERS.map(f=>`<th class=fnd title="${f}">${SHORT[f]}</th>`).join("")+"<th>consequence</th><th>gene</th></tr>";
+    `<th data-tip="Strain distribution pattern (R/qtl2): which founders carry the minor allele. Click a value for the calculator."><a href="${BASE}/sdp" target=_blank>SDP</a></th>`+
+    `<th data-tip="SDPN: the founders' actual bases, grouped. Unlike SDP it keeps multiallelic sites. Click a value for the calculator."><a href="${BASE}/sdp" target=_blank>SDPN</a></th><th>ref</th>`+
+    FOUNDERS.map(f=>`<th class=fnd data-tip="${fullName(f)}">${SHORT[f]}</th>`).join("")+
+    (gene?`<th data-tip="The SNP's effect on ${esc(gene.symbol||gene.ensembl_id)}. When its most severe effect is in another gene, that follows.">consequence in <i>${esc(gene.symbol||gene.ensembl_id)}</i></th>`
+         :`<th data-tip="The most severe effect of the founder alleles over every transcript. +N: the other terms.">consequence</th>`)+
+    `<th data-tip="Every gene VEP annotated at the SNP, most severe first. Faded: nearby only (within 5 kb).">genes</th></tr>`;
   tb.innerHTML="";
   const frag=document.createDocumentFragment();
-  for(const v of vars){
-    const tr=document.createElement("tr");
+  vars.forEach((v,i)=>{
+    const tr=document.createElement("tr");tr.dataset.i=i;
     const calc=`${BASE}/sdp?sdpn=${v.sdpn}`;
     const idlink=/^rs/.test(v.variants_id)?`<a href="https://www.ebi.ac.uk/eva/?variant-browser&accessionID=${v.variants_id}" target=_blank>${v.variants_id}</a>`:v.variants_id;
     let cells=`<td>${idlink}</td><td>${v.chr}:${(v.pos/1e6).toFixed(4)}Mb</td>`+
-      `<td><a class=num href="${calc}" data-sdpn="${v.sdpn}" title="Open this pattern in the SDP calculator">${v.sdp}</a><span class=part>${v.sdp_partition}</span></td>`+
-      `<td><a class=num href="${calc}" data-sdpn="${v.sdpn}" title="Open this pattern in the SDP calculator">${v.sdpn}</a><span class=part title="${v.sdpn_seq}">${v.sdpn_display}</span></td><td>${v.ref}</td>`;
+      `<td data-k=sdp><a class=num href="${calc}" data-sdpn="${v.sdpn}">${v.sdp}</a><span class=part>${v.sdp_partition}</span></td>`+
+      `<td data-k=sdpn><a class=num href="${calc}" data-sdpn="${v.sdpn}">${v.sdpn}</a><span class=part>${v.sdpn_display}</span></td><td>${v.ref}</td>`;
     for(const f of FOUNDERS){
       const b=v.founders[f]; const isref=b===v.ref; const lc=v.low_conf_founders.includes(f);
-      cells+=`<td class="fnd b-${b} ${isref?'ref':''} ${lc?'lc':''}" title="${f}${lc?' (low-conf)':''}">${b}</td>`;
+      cells+=`<td class="fnd b-${b} ${isref?'ref':''} ${lc?'lc':''}" data-k="f:${f}">${b}</td>`;
     }
-    const hc=v.high_confidence?"":`<span class=hc-no title="not all founders high-confidence">◔</span> `;
-    cells+=`<td class=csq>${hc}${v.max_csq||""}</td>`+
-      `<td>${v.gene_id?`<a href="https://www.ensembl.org/Mus_musculus/Gene/Summary?g=${v.gene_id}" target=_blank>${v.gene_id}</a>`:""}</td>`;
+    const hc=v.high_confidence?"":`<span class=hc-no>◔</span> `;
+    cells+=`<td class=csq data-k=csq>${hc}${csqCell(v,gene)}</td><td data-k=genes>${geneCell(v,gene)}</td>`;
     tr.innerHTML=cells;
     if(MARK.has(String(v.pos))||MARK.has(String(v.variants_id).toLowerCase()))tr.classList.add("mark");
     frag.appendChild(tr);
-  }
+  });
   tb.appendChild(frag);
   if(!MARK.size)return;
   const hit=tb.querySelector("tr.mark");

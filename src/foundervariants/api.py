@@ -28,7 +28,10 @@ from .log import get_logger
 
 LOG = get_logger()
 WEB = os.path.join(os.path.dirname(__file__), "web")
-_EXPORT_MEDIA = {"csv": "text/csv", "tsv": "text/tab-separated-values", "json": "application/json"}
+# ndjson (JSON Lines): one complete variant per line, nested genes/consequences intact,
+# readable line by line (jq, pandas read_json(lines=True), jsonlite::stream_in).
+_EXPORT_MEDIA = {"csv": "text/csv", "tsv": "text/tab-separated-values", "json": "application/json",
+                 "ndjson": "application/x-ndjson"}
 
 
 def _discover(db_dir: str) -> dict[str, dict]:
@@ -120,12 +123,25 @@ def create_app() -> FastAPI:
                 c, region=region, gene_symbol=gene, rsid=rsid, consequence=consequence,
                 low_confidence=low_confidence, differ=differ, private_to=private_to,
                 sdpn=sdpn, limit=limit))
+        except Q.AmbiguousGeneError as ex:
+            # 409, not 404: the gene exists, at more than one place. `candidates` lets a
+            # client offer the loci; searching by one's Ensembl ID resolves it.
+            raise HTTPException(409, {"message": str(ex), "symbol": ex.symbol,
+                                      "total": ex.total, "candidates": ex.candidates}) from ex
         except LookupError as ex:
             raise HTTPException(404, str(ex))
         except ValueError as ex:
             raise HTTPException(422, str(ex))
         exported = _export(res["variants"], format, f"foundervariants_{release}")
-        return exported or {"data": res, "meta": {"release": release, "count": res["count"]}}
+        if exported:
+            return exported
+        # Serialized here, not by FastAPI: its encoder walks every nested object in Python
+        # (thousands of variants, each with a genes list), which cost more than the query.
+        # The payload is already plain JSON types, so the stdlib C encoder is exact.
+        body = await run_in_threadpool(
+            json.dumps, {"data": res, "meta": {"release": release, "count": res["count"]}},
+            separators=(",", ":"))
+        return Response(body, media_type="application/json")
 
     @app.get("/{release}/download/rqtl2")
     def download_rqtl2(request: Request, release: str):
@@ -186,9 +202,18 @@ def _scalar_html(base: str) -> str:
     )
 
 
+def _gene_cell(g: dict) -> str:
+    """One gene for a flat export: `Nudt8:ENSMUSG00000110949:synonymous_variant`, `~` = near only."""
+    return f"{'~' if g['near'] else ''}{g['symbol'] or ''}:{g['gene_id']}:{g['consequence'] or ''}"
+
+
 def _flatten(v: dict) -> dict:
     row = {k: v[k] for k in ("variants_id", "chr", "pos", "ref", "alleles", "sdp", "sdpn",
-                             "sdp_partition", "sdpn_display", "confidence", "max_csq", "gene_id")}
+                             "sdp_partition", "sdpn_display", "confidence", "max_csq", "gene_id",
+                             "gene_symbol")}
+    row["consequences"] = "|".join(v.get("consequences", []))   # every term, most severe first
+    # every gene at the SNP, most severe first ("|"-separated; see _gene_cell)
+    row["genes"] = "|".join(_gene_cell(g) for g in v.get("genes", []))
     row.update({f"founder_{k}": val for k, val in v["founders"].items()})
     row["low_conf_founders"] = "|".join(v["low_conf_founders"])
     return row
@@ -199,6 +224,8 @@ def _export(rows: list[dict], fmt: str, stem: str):
         return None
     if fmt == "json":
         body = json.dumps(rows).encode()
+    elif fmt == "ndjson":
+        body = "".join(json.dumps(r, separators=(",", ":")) + "\n" for r in rows).encode()
     else:
         flat = [_flatten(r) for r in rows]
         delim = "," if fmt == "csv" else "\t"

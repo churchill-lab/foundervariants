@@ -53,6 +53,7 @@ def canonical_term(term: str) -> str:
     return DEPRECATED_TERMS.get(term, term)
 
 _INSERT_VARIANT = f"INSERT INTO variants VALUES ({','.join('?' * 12)})"
+_INSERT_STAGE_GENE = "INSERT INTO stage.vg VALUES (?,?,?,?)"
 
 
 def _load_so(path):
@@ -88,14 +89,19 @@ def _csq_indices(vcf):
 
 
 def parse_chrom(vcf, chrom, fidx, ci, so2score, termbit, keeplow, keepno, stats):
-    """Yield one ready-to-insert `variants` row per kept SNP on `chrom`, in position order.
+    """Yield `(variants_row, variant_genes_rows)` per kept SNP on `chrom`, in position order.
 
-    `stats` is updated in place with 'seen', 'kept' and 'csq' once the generator is
-    exhausted.
+    `variants_row` is the R/qtl2-compatible row. It keeps ONE gene: the gene of the
+    single most severe consequence. `variant_genes_rows` holds every gene VEP annotated
+    for a founder allele at this site, with that gene's own csq_mask; sorted by gene ID
+    so the output is deterministic.
+
+    `stats` is updated in place with 'seen', 'kept', 'csq' and 'gene_rows' once the
+    generator is exhausted.
     """
     i_allele, i_csq, i_gene = ci
     need = max(i_allele, i_csq, i_gene)
-    seen = kept = ncsq = 0
+    seen = kept = ncsq = ngene = 0
     for rec in vcf(chrom):
         ref, alts = rec.REF, rec.ALT
         if len(ref) != 1 or any(len(a) != 1 for a in alts):
@@ -119,6 +125,7 @@ def parse_chrom(vcf, chrom, fidx, ci, so2score, termbit, keeplow, keepno, stats)
         sdpn = enc.bases_to_sdpn(bases)
         founder_alt = {b for b in bases if b != ref and b != "."}
         mask, max_csq, max_score, gene_of_max = 0, None, -1, None
+        gmask: dict[str, int] = {}   # per-gene csq_mask -> variant_genes rows
         for entry in (rec.INFO.get("CSQ") or "").split(","):
             p = entry.split("|")
             if len(p) <= need:
@@ -137,13 +144,17 @@ def parse_chrom(vcf, chrom, fidx, ci, so2score, termbit, keeplow, keepno, stats)
                 bit = termbit.get(term)
                 if bit is not None:
                     mask |= 1 << bit
+                    if gene:   # gene-less entries (intergenic, regulatory) fold into mask only
+                        gmask[gene] = gmask.get(gene, 0) | 1 << bit
 
-        yield (rec.ID or f"{chrom}:{rec.POS}_{ref}_{'|'.join(alts)}",
-               chrom, rec.POS, ref, enc.alleles_string(sdpn, ref),
-               enc.sdp_from_sdpn(sdpn, ref), sdpn, enc.calc_sdp(fis),
-               gene_of_max, max_csq, mask, "snp")
+        yield ((rec.ID or f"{chrom}:{rec.POS}_{ref}_{'|'.join(alts)}",
+                chrom, rec.POS, ref, enc.alleles_string(sdpn, ref),
+                enc.sdp_from_sdpn(sdpn, ref), sdpn, enc.calc_sdp(fis),
+                gene_of_max, max_csq, mask, "snp"),
+               [(chrom, rec.POS, g, m) for g, m in sorted(gmask.items())])
         kept += 1
-    stats.update(seen=seen, kept=kept, csq=ncsq)
+        ngene += len(gmask)
+    stats.update(seen=seen, kept=kept, csq=ncsq, gene_rows=ngene)
 
 
 def build(vcf_path, chroms, out_dir, genes_tsv, so_tsv, *, name, release, grc,
@@ -169,25 +180,44 @@ def build(vcf_path, chroms, out_dir, genes_tsv, so_tsv, *, name, release, grc,
     con.execute("PRAGMA synchronous=OFF")
     for ddl in schema.DDL_TABLES:
         con.execute(ddl)
+    # Stage variant_genes in a scratch file, then copy it in key order at the end. Text
+    # keys sort "1","10","11",... but chromosomes are built 1,2,3,..., so inserting
+    # directly would land rows mid-tree and leave half-empty pages.
+    stage_path = out_path + ".stage"
+    if os.path.exists(stage_path):
+        os.remove(stage_path)
+    con.execute("ATTACH ? AS stage", [stage_path])
+    con.execute("PRAGMA stage.journal_mode=OFF")
+    con.execute("PRAGMA stage.synchronous=OFF")
+    con.execute("CREATE TABLE stage.vg(chr TEXT, pos INTEGER, ensembl_gene TEXT, csq_mask INTEGER)")
 
-    total_v = total_c = 0
+    total_v = total_c = total_g = 0
     with step(f"build {release} ({grc}) variants"):
         for chrom in chroms:
             stats: dict[str, int] = {}
             rows = parse_chrom(vcf, chrom, fidx, ci, so2score, termbit,
                                keeplow, keepno, stats)
             while batch := list(itertools.islice(rows, BATCH)):
-                con.executemany(_INSERT_VARIANT, batch)
+                con.executemany(_INSERT_VARIANT, [v for v, _ in batch])
+                con.executemany(_INSERT_STAGE_GENE, [g for _, gs in batch for g in gs])
             con.commit()
             total_v += stats["kept"]
             total_c += stats["csq"]
+            total_g += stats["gene_rows"]
             LOG.info(f"chr{chrom:<3} seen {stats['seen']:,} kept {stats['kept']:,} "
-                     f"csq {stats['csq']:,}")
+                     f"csq {stats['csq']:,} gene rows {stats['gene_rows']:,}")
+
+    with step("variant_genes"):
+        con.execute("INSERT INTO main.variant_genes SELECT * FROM stage.vg "
+                    "ORDER BY chr, pos, ensembl_gene")
+        con.commit()
+        con.execute("DETACH stage")
+        os.remove(stage_path)
 
     _load_reference_tables(con, genes, so_rows, termbit)
     _write_meta(con, genes_tsv, gene_version, vcf_path, chroms,
                 name=name, release=release, grc=grc, n_genes=len(genes),
-                n_variants=total_v, n_consequences=total_c)
+                n_variants=total_v, n_consequences=total_c, n_variant_genes=total_g)
     with step("index"):
         for ddl in schema.DDL_INDEXES:
             con.execute(ddl)
@@ -208,7 +238,8 @@ def _load_reference_tables(con, genes, so_rows, termbit):
 
 
 def _write_meta(con, genes_tsv, gene_version, vcf_path, chroms, *,
-                name, release, grc, n_genes, n_variants, n_consequences):
+                name, release, grc, n_genes, n_variants, n_consequences,
+                n_variant_genes):
     created = _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")
     con.executemany("INSERT INTO meta VALUES (?,?)", [
         ("schema_version", schema.SCHEMA_VERSION),
@@ -222,8 +253,9 @@ def _write_meta(con, genes_tsv, gene_version, vcf_path, chroms, *,
         ("n_genes", str(n_genes)), ("n_variants", str(n_variants)),
         # Counted, not stored: the transcript-level consequence rows folded into csq_mask.
         ("n_consequences", str(n_consequences)),
+        ("n_variant_genes", str(n_variant_genes)),
         ("built_with", "foundervariants.build streaming cyvcf2->sqlite"),
-        ("served_from", "single-sqlite"), ("csq_model", "per-variant bitmask"),
+        ("served_from", "single-sqlite"), ("csq_model", schema.CSQ_MODEL),
     ])
     con.execute("INSERT INTO description VALUES (?,?,?)",
                 [f"FounderVariants {name}", grc, created])

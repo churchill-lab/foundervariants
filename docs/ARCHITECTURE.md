@@ -119,6 +119,58 @@ Verified to return results identical to the old transcript-level table. The
 per-transcript breakdown is intentionally dropped (link out to Ensembl/VEP for
 that); the top consequence per variant is kept in the `consequence` column.
 
+### `variant_genes` — every gene at a SNP (schema `compact-v2`)
+
+`consequence` and `ensembl_gene` hold the single most severe term and *its* gene. Genes
+overlap, so that hides the others: on GRCm39, 994,882 SNPs (2.8%) are in more than one
+gene body, and 3,685,106 (10.3%) have more than one gene counting VEP's 5 kb up/downstream
+flanks. At rs37654964, for example, the SNP is synonymous in both Nudt8 and
+Gm49405 (a tie, which Nudt8 won on CSQ order) and in an exon of Gm16312, a lncRNA;
+`variants` named only Nudt8. A gene search was misleading too: searching Gm49405
+listed SNPs whose consequence was really about Nudt8.
+
+`variant_genes` keeps one row per (SNP, gene), with that gene's own `csq_mask`:
+
+```sql
+CREATE TABLE variant_genes(chr, pos, ensembl_gene, csq_mask,
+                           PRIMARY KEY(chr, pos, ensembl_gene)) WITHOUT ROWID;
+```
+
+- **Per gene, not per transcript.** The question is "which genes, and what does the SNP do
+  to each", so transcripts fold into the gene's mask exactly as they fold into
+  `variants.csq_mask`. That's ~0.77 rows per SNP, not VEP's ~3.
+- **Only the mask is stored.** `so_terms` scores are unique, so a gene's most severe term
+  is the highest-scoring bit of its mask; "near only" is a mask with nothing but
+  up/downstream bits. Neither is a column that could drift.
+- **Keyed by `(chr, pos)`,** which is unique in `variants` for every release built, so
+  lookups are primary-key seeks and the table needs no separate index.
+- **Gene-less CSQ entries** (intergenic, regulatory) have no row; their bits are only in
+  `variants.csq_mask`.
+- **A separate table, so R/qtl2 can't see it.** `create_variant_query_func()` runs
+  `SELECT * FROM variants …`; that table, its index and every row are unchanged
+  (verified, see [DATABASES.md](DATABASES.md)).
+
+Two invariants tie the tables together, and `scripts/check_variant_genes.py` checks them
+on a built file: every gene's mask is within its SNP's `csq_mask`, and the gene stored in
+`variants` has a row whose top term is `variants.consequence`. The read side
+(`query.attach_genes`) orders genes by severity with that stored gene first on ties, so
+`genes[0]` always agrees with `max_csq`/`gene_id`. Files built before `compact-v2` have
+no `variant_genes`; they are served with the one stored gene instead.
+
+Loci that show why this matters (GRCm39):
+
+- **Pcdhga1** (chr18): the protocadherin-γ genes each have their own first exon and share
+  the downstream ones, so one SNP sits in many of them. Of Pcdhga1's first 2,000 SNPs,
+  310 used to show another cluster gene's missense, e.g. rs215689918: intronic in
+  Pcdhga1, missense in Pcdhga2.
+- **Kcnq1ot1 / Kcnq1** (chr7) and **Airn / Igf2r** (chr17): imprinted antisense
+  transcripts inside their genes. All 795 Kcnq1ot1 SNPs are also in Kcnq1, and 221 of
+  Igf2r's 635 are also in Airn.
+- **Nudt8 / Gm49405** (chr19): rs37654964, the tie described above.
+
+Not good demonstrations: genes whose Ensembl span is several Mb (Fgfr2's is ~3 Mb), where
+a gene search reaches the 2,000-row default limit before the overlap.
+
 ---
 
 ## 3. Storage: one SQLite per release
@@ -174,8 +226,12 @@ CREATE TABLE variants(
 CREATE INDEX chr_pos ON variants(chr,pos);   -- R/qtl2 + region queries
 CREATE INDEX ix_snp  ON variants(snp_id);    -- rsID lookup
 
+CREATE TABLE variant_genes(chr, pos, ensembl_gene, csq_mask,   -- every gene per SNP (compact-v2)
+                           PRIMARY KEY(chr, pos, ensembl_gene)) WITHOUT ROWID;
+
 CREATE TABLE genes(ensembl_id, ensembl_version, symbol, name,
                    chromosome, start_position, end_position, strand);  -- self-contained gene resolution
+CREATE UNIQUE INDEX gi_id ON genes(ensembl_id);  -- symbols for variant_genes (compact-v2)
 CREATE TABLE so_terms(term, description, accession, display, impact, score, bit); -- bit = csq_mask position
 CREATE TABLE meta(meta_name, meta_value);        -- provenance (see below)
 CREATE TABLE description(description, genome_build, date_created);  -- R/qtl2 metadata table
@@ -189,8 +245,8 @@ with canonical names, so **no field overrides**. Everything else is passed throu
 Recorded at build time so a database is self-describing and reproducible:
 `release`, `grc`, `created` (UTC ISO-8601), `founders`, `source_vcf`,
 `gene_annotation_file` + `gene_annotation_version` (which ensimpl/Ensembl export the
-genes came from — so annotations can be refreshed), `n_variants`, `chroms`,
-`schema_version`, `csq_model`.
+genes came from — so annotations can be refreshed), `n_variants`, `n_variant_genes`,
+`chroms`, `schema_version`, `csq_model`.
 
 ---
 
@@ -203,7 +259,7 @@ Sanger VCF ──cyvcf2 stream, per chromosome──▶ fv.<release>.snps.sqlite
  24 GB, dev machine only                      4.27 GB, the only artifact
 ```
 
-`build.py` (streaming, per chromosome, bounded memory — nothing is staged):
+`build.py` (streaming, per chromosome, bounded memory):
 1. Locate the 8 founders in the VCF header (B6 is absent → forced to REF).
 2. Parse CSQ field indices **by name** (the field order differs between Ensembl 75
    and 104 — parsing by name handles both).
@@ -213,12 +269,17 @@ Sanger VCF ──cyvcf2 stream, per chromosome──▶ fv.<release>.snps.sqlite
 4. While reading the record's CSQ entries — the moment every SO term for the variant is
    in hand — canonicalise each term through `DEPRECATED_TERMS` (VEP 75's
    `initiator_codon_variant` → VEP 104's `start_lost`), then accumulate `csq_mask`
-   (`mask |= 1 << bit`) and track the top-scoring term and its gene. The transcript-level
-   rows are counted for `meta.n_consequences` and then dropped on the floor; nothing
-   materializes 110M rows.
+   (`mask |= 1 << bit`) and track the top-scoring term and its gene. In the same loop,
+   OR each term's bit into that entry's gene's own mask (the `variant_genes` rows). The
+   transcript-level rows are counted for `meta.n_consequences` and then dropped on the
+   floor; nothing materializes 110M rows.
 5. Derive `alleles` and `sdp` from `sdpn` + `ref` and insert the finished row, in
-   100k-row batches.
-6. After the last chromosome: load self-contained `genes` (from the ensimpl TSV) and
+   100k-row batches. The per-gene rows go to a scratch file beside the output
+   (`.stage`).
+6. After the last chromosome: copy the staged gene rows into `variant_genes` in key
+   order and delete the scratch file. (Text keys sort `1, 10, 11, …` while the build
+   runs `1, 2, 3, …`; inserting directly would land rows mid-tree and leave half-empty
+   pages.) Then load self-contained `genes` (from the ensimpl TSV) and
    `so_terms` (with its bit assignment), write `meta` + `description`, then build the
    indexes.
 
@@ -244,6 +305,33 @@ query layer (`query.py`) is pure stdlib `sqlite3` and is usable as a library
 (`from foundervariants import query`). Middleware: gzip, permissive CORS (read-only).
 Reverse-proxy prefix via `FV_BASE_PATH`.
 
+`/variants` serializes its own JSON with the stdlib encoder (compact separators) rather
+than returning a dict for FastAPI to encode. FastAPI's `jsonable_encoder` walks every
+nested object in Python; once each variant carried a `genes` list, that walk cost more
+than the query (a 2,000-row search: 34 ms of query, ~80 ms of encoding). The payload is
+already plain JSON types, so the C encoder is exact. Exports: `csv`, `tsv` (flattened,
+one column per founder), `json`, and `ndjson` (one variant per line, nesting intact).
+
+### The web UI
+
+One self-contained page (`web/index.html`, no framework or build step). The results table
+is plain DOM. Details appear in a **hover card**, one floating element filled from the
+row's data when the pointer enters a cell, styled like the rest of the page and instant.
+It replaced native `title` tooltips (slow to appear, unstyled, and thousands of attributes
+in the HTML); the idea is MUSTER's genotype-grid tooltip. Per column:
+
+- **founder cell:** the strain, its call (reference / alternate / no call), confidence,
+  site, alleles, reference, variant ID, then the consequence and gene, with the column
+  header highlighted (MUSTER's crosshair);
+- **consequence and genes cells:** every consequence at the SNP, then **gene by gene**,
+  each with its own most severe term, the others, its Ensembl ID, and whether it's only
+  nearby. At most 8 genes; the rest are counted and are all in the exports;
+- **SDP / SDPN cells:** which founders carry which allele;
+- **headers:** what the column means.
+
+Term names in the card come from `so_terms.display` ("Synonymous variant"), with an
+impact dot (HIGH, MODERATE, LOW, MODIFIER).
+
 Gene resolution is **self-contained** (own `genes` table) — no runtime dependency on
 the sibling ensimpl service; ensimpl is only the *source* of the gene annotation TSV
 at build time.
@@ -258,6 +346,12 @@ at build time.
 | gene / rsID | ~ms |
 | multi-term consequence filter (region-scoped) | ~ms |
 | genome-wide founder-pattern (`private_to`, `differ`) | ~1–1.5 s |
+| `/variants` over HTTP, 2,000 rows with genes (compact-v2) | ~43 ms |
+
+In the browser, drawing a 2,000-row table (~43,000 cells) takes ~0.6 s, more than the
+query and fetch together. That is the next speed lever: draw only the visible rows, as
+MUSTER's canvas grid does. `content-visibility` on rows doesn't help, because a table sizes
+its columns from every row.
 
 ---
 
@@ -278,6 +372,30 @@ at build time.
 - **`csq_mask` instead of 110M transcript rows** — keeps the file to one manageable
   file and makes multi-term filtering a single bitwise test; drop-in Ensembl links
   cover the rare need for per-transcript detail.
+- **Every gene per SNP in a side table, not in `variants`** (2026-11-03) — `variants` kept
+  one gene, the most severe consequence's, which hid overlapping genes and made gene
+  searches misleading (see `variant_genes` above). A side table keeps R/qtl2's table
+  byte-for-byte unchanged and costs ~0.77 rows per SNP. Rejected: deriving overlaps at
+  query time from `genes` coordinates (it gives no per-gene consequence, misses VEP's
+  flank genes, and would be a second source of truth beside VEP); and a per-transcript
+  table (~3 rows per SNP, for detail Ensembl already links to).
+- **Our own JSON encoding for `/variants`** (2026-11-04) — the gene lists made FastAPI's
+  default encoding the slowest step (a 2,000-row search went from ~78 to ~110 ms). With the
+  stdlib encoder it's ~43 ms, faster than before the gene lists existed.
+- **A hover card instead of `title` tooltips** (2026-11-04) — after MUSTER's grid tooltip:
+  instant, styled, built from the row's data on demand. It's where the per-gene detail
+  lives, so the table can stay compact (two genes, then "+N").
+- **NDJSON export, and no JSON-LD in the API** (2026-11-04) — NDJSON (JSON Lines) keeps
+  the nested `genes`/`consequences` that CSV must flatten, reads line by line in jq,
+  pandas and `jsonlite::stream_in`, and is the format to stream if the export cap is ever
+  raised. MUSTER exports it too. JSON-LD was considered and kept out of `/variants`: an
+  `@context`/`@id`/`@type` on every variant would enlarge every response (the cost just
+  removed above) and change its shape for existing clients, and no consumer of SNP
+  genotypes reads linked data. Where JSON-LD would help is a schema.org/Bioschemas
+  `Dataset` description in the page `<head>`, for dataset search engines; not done yet.
+- **Ambiguous gene symbols are refused, not guessed** (2026-11-03) — a symbol naming
+  several loci (`U6`: 486) used to resolve to whichever row SQLite returned first. It now
+  gets `409` with the candidates; Ensembl IDs are accepted wherever a symbol is.
 - **Canonical R/qtl2 column names** (`snp_id`,`sdp`,…) — drop-in with no overrides,
   cleaner than the old DB which needed `id_field="variants_id"`.
 - **Gene annotations baked in with provenance** — no runtime ensimpl dependency;
@@ -291,3 +409,32 @@ at build time.
   consequence and the `csq_mask` bit cannot disagree. See
   [DATABASES.md](DATABASES.md#deprecated-vep-terms-are-canonicalised-on-read) for the
   evidence behind the ranking and the one case the source annotation cannot distinguish.
+
+---
+
+## 8. Open ideas
+
+From comparing FounderVariants with MUSTER (657 strains, the same Sanger VEP annotation)
+in November 2026. Taken already: per-gene consequences, refusing ambiguous symbols, the
+"+N" consequence count, the hover card and NDJSON. Not yet:
+
+- **Draw only the visible rows.** The browser spends ~0.6 s drawing 2,000 rows, the
+  largest remaining cost of a search.
+- **Paging with exact totals instead of a row cap.** A gene or window larger than the
+  limit (2,000 by default) shows only its left edge. Paging would also make multi-Mb
+  genes like Fgfr2 usable.
+- **`flank=` on gene and rsID searches** (e.g. a gene plus 5 kb each side), and several
+  locations in one search.
+- **Per-SNP transcript detail on click** (each transcript's consequence, codons, protein
+  position). `variant_genes` stops at the gene; this would need a transcript table or a
+  link out to Ensembl's VEP view.
+- **Color cells by reference vs. alternate** rather than by base, so the founders carrying
+  the alternate allele stand out. Check the palette for colorblind safety first.
+- **A schema.org/Bioschemas `Dataset` description in the page `<head>`**, so dataset
+  search engines can find and cite the databases.
+- **Fill the symbol gap.** VEP annotates some genes the bundled ensimpl list lacks, so
+  they show as Ensembl IDs (885 genes on 63,198 SNPs on GRCm39; 3,655 on 667,716 on
+  GRCm38).
+
+Strengths to keep: founder-pattern queries (SDP/SDPN, private-to, exact pattern), the
+R/qtl2 file being the served file, and a single dependency-light SQLite per release.

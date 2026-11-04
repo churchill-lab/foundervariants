@@ -30,14 +30,23 @@ for rel in $RELEASES; do
   if [[ ! -f "$NEW" ]]; then echo "  !! rebuilt file missing"; FAIL=1; continue; fi
   stat -f "  %z bytes  %N" "$OLD" "$NEW"
 
-  echo "  -- stored schema text --"
-  if diff <(sqlite3 "$OLD" .schema | sort) <(sqlite3 "$NEW" .schema | sort) > /dev/null; then
+  # Schema compact-v2 ADDS variant_genes and the gi_id index; everything production has
+  # (above all the R/qtl2 `variants` table and chr_pos) must be byte-identical. Statements
+  # are compared whole (sqlite_master.sql), so a multi-line CREATE can't half-match.
+  echo "  -- stored schema text (production objects must be identical) --"
+  V2_NEW="'variant_genes','gi_id'"
+  SCHEMA_SQL="SELECT type||' '||name||': '||replace(sql,char(10),' ') FROM sqlite_master WHERE sql IS NOT NULL"
+  if diff <(sqlite3 "$OLD" "$SCHEMA_SQL ORDER BY name") \
+          <(sqlite3 "$NEW" "$SCHEMA_SQL AND name NOT IN ($V2_NEW) ORDER BY name") > /dev/null; then
     echo "     IDENTICAL"
   else
     echo "     DIFFERS:"
-    diff <(sqlite3 "$OLD" .schema|sort) <(sqlite3 "$NEW" .schema|sort) | sed 's/^/       /'
+    diff <(sqlite3 "$OLD" "$SCHEMA_SQL ORDER BY name") \
+         <(sqlite3 "$NEW" "$SCHEMA_SQL AND name NOT IN ($V2_NEW) ORDER BY name") | sed 's/^/       /'
     FAIL=1
   fi
+  echo "  -- added in compact-v2 --"
+  sqlite3 "$NEW" "SELECT name FROM sqlite_master WHERE name IN ($V2_NEW) ORDER BY name" | sed 's/^/     /'
 
   echo "  -- rows: coverage, then all 12 columns --"
   sqlite3 <<SQL | sed 's/^/     /'
@@ -78,13 +87,14 @@ WHERE o.consequence IS NOT n.consequence OR o.ensembl_gene IS NOT n.ensembl_gene
 GROUP BY 1,2 ORDER BY rows DESC LIMIT 20;
 SQL
 
-  echo "  -- meta (expect only: created, built_with, duplicate n_variants) --"
+  echo "  -- meta (expect: created; compact-v2 adds n_variant_genes, schema_version, csq_model) --"
   diff <(sqlite3 "$OLD" "SELECT meta_name||' = '||meta_value FROM meta ORDER BY 1") \
        <(sqlite3 "$NEW" "SELECT meta_name||' = '||meta_value FROM meta ORDER BY 1") \
        | sed 's/^/     /' || true
   echo
 done
 
+echo "  Next: scripts/check_variant_genes.py on each rebuilt file (per-gene invariants)."
 echo "═══════════════════════════════════════════════════════════════"
 if [[ $FAIL -eq 0 ]]; then
   echo "  To swap: 'matched 1:1' must equal BOTH row counts, and every"

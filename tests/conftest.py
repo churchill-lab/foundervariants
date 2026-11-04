@@ -26,6 +26,8 @@ SO_TERMS = [
     ("missense_variant", "changes an aa", "SO:0001583", "Missense variant", "MODERATE", 22, 1),
     ("synonymous_variant", "no aa change", "SO:0001819", "Synonymous variant", "LOW", 15, 2),
     ("intron_variant", "in an intron", "SO:0001627", "Intron variant", "MODIFIER", 8, 3),
+    # A flank term: a gene with only this is "near", not "in" (variant_genes)
+    ("upstream_gene_variant", "5' of a gene", "SO:0001631", "Upstream gene variant", "MODIFIER", 5, 4),
 ]
 BIT = {t[0]: t[6] for t in SO_TERMS}
 
@@ -34,7 +36,21 @@ GENES = [
     ("ENSMUSG00000013663", "1", "Pten", "phosphatase and tensin homolog", "19", 1000, 5000, 1),
     ("ENSMUSG00000000001", "2", "Ptgs2", "prostaglandin synthase 2", "19", 8000, 9000, -1),
     ("ENSMUSG00000000002", "1", "Actb", "actin beta", "5", 100, 900, 1),
+    # Overlaps Pten: rs001 is in both genes
+    ("ENSMUSG00000098178", "1", "Gm42418", "predicted gene", "19", 1200, 1800, -1),
+    # Just past rs002: VEP calls rs002 upstream of it (near, not in)
+    ("ENSMUSG00000088000", "1", "Snhg1", "small nucleolar RNA host gene 1", "19", 2600, 2900, 1),
+    # Overlaps Ptgs2 at rs004 with the SAME top term: a tie, which Ptgs2 must win
+    ("ENSMUSG00000077777", "1", "Aaa1", "tie partner", "19", 8400, 8700, 1),
+    # One symbol, two loci (like U6): ambiguous
+    ("ENSMUSG00000064001", "1", "U6", "U6 spliceosomal RNA", "5", 50, 60, 1),
+    ("ENSMUSG00000064002", "1", "U6", "U6 spliceosomal RNA", "19", 7000, 7100, 1),
+    ("ENSMUSG00000064003", "1", "U6", "U6 spliceosomal RNA", "X", 10, 20, 1),   # X sorts last
+    # Symbols differing only in case: an exact-case match wins, otherwise ambiguous
+    ("ENSMUSG00000070001", "1", "Mir1a", "microRNA", "5", 700, 800, 1),
+    ("ENSMUSG00000070002", "1", "MIR1A", "microRNA", "5", 900, 950, 1),
 ]
+NO_SYMBOL_GENE = "ENSMUSG00000199999"   # annotated by VEP, absent from the genes table
 
 
 def _sdpn(bases: str) -> int:
@@ -49,7 +65,7 @@ VARIANTS = [
      "missense_variant", ["missense_variant", "intron_variant"]),
     # A/J and NOD differ -> sdp = 1<<0 | 1<<3 = 9
     ("rs002", "19", 2500, "G", "TGGTGGGG", 255, "ENSMUSG00000013663",
-     "stop_gained", ["stop_gained"]),
+     "stop_gained", ["stop_gained", "upstream_gene_variant"]),
     # Low confidence: CAST's FI flag is 0 -> confidence != 255
     ("rs003", "19", 3500, "A", "ACAAAAAA", 223, "ENSMUSG00000013663",
      "synonymous_variant", ["synonymous_variant"]),
@@ -66,6 +82,29 @@ VARIANTS = [
     ("5:600_G_A", "5", 600, "G", "AGGGGGGG", 255, None, None, []),
 ]
 
+# Every gene per SNP, as build.py writes variant_genes: (chr, pos) -> {gene: terms}.
+# Each SNP's stored gene (VARIANTS) is the gene of its top term, and every gene's terms
+# are within the SNP's terms: the two invariants the build guarantees.
+VARIANT_GENES = {
+    ("19", 1500): {"ENSMUSG00000013663": ["missense_variant", "intron_variant"],
+                   "ENSMUSG00000098178": ["intron_variant"]},
+    ("19", 2500): {"ENSMUSG00000013663": ["stop_gained"],
+                   "ENSMUSG00000088000": ["upstream_gene_variant"]},
+    ("19", 3500): {"ENSMUSG00000013663": ["synonymous_variant"]},
+    ("19", 8500): {"ENSMUSG00000000001": ["intron_variant"],
+                   "ENSMUSG00000077777": ["intron_variant"]},
+    ("19", 8600): {"ENSMUSG00000000001": ["missense_variant"]},
+    ("5", 500): {"ENSMUSG00000000002": ["intron_variant"], NO_SYMBOL_GENE: ["intron_variant"]},
+}
+
+
+def _mask(terms) -> int:
+    m = 0
+    for t in terms:
+        m |= 1 << BIT[t]
+    return m
+
+
 META = {
     "schema_version": schema.SCHEMA_VERSION,
     "release": "9999",
@@ -81,17 +120,27 @@ META = {
     "n_genes": str(len(GENES)),
     "n_variants": str(len(VARIANTS)),
     "n_consequences": "9",
+    "n_variant_genes": str(sum(len(g) for g in VARIANT_GENES.values())),
     "built_with": "tests.conftest",
     "served_from": "single-sqlite",
-    "csq_model": "per-variant bitmask",
+    "csq_model": schema.CSQ_MODEL,
 }
 
 
-def make_db(path: str, release: str = "9999") -> str:
-    """Create a fixture database at `path` using the production DDL."""
+def make_db(path: str, release: str = "9999", variant_genes: bool = True) -> str:
+    """Create a fixture database at `path` using the production DDL.
+
+    `variant_genes=False` builds a schema compact-v1 file (before variant_genes existed),
+    which the server must still serve.
+    """
     con = sqlite3.connect(path)
     for ddl in schema.DDL_TABLES:
-        con.execute(ddl)
+        if variant_genes or "variant_genes" not in ddl:
+            con.execute(ddl)
+    if variant_genes:
+        con.executemany("INSERT INTO variant_genes VALUES (?,?,?,?)", [
+            (c, p, g, _mask(terms)) for (c, p), genes in VARIANT_GENES.items()
+            for g, terms in genes.items()])
 
     for snp_id, chrom, pos, ref, bases, conf, gene, top, terms in VARIANTS:
         sdpn = _sdpn(bases)

@@ -46,7 +46,7 @@ arguments. One row per key.
 
 | key | meaning |
 |---|---|
-| `schema_version` | internal schema version — currently `compact-v1` |
+| `schema_version` | internal schema version — currently `compact-v2` (`compact-v1` had no `variant_genes`; its `variants` table is identical) |
 | `release` / `name` | release id (`2021`) and human name (`REL-2021`) |
 | `variant` | `SNP` — the type of variant in this file |
 | `grc` | genome build (`GRCm39`) — **coordinates are only comparable within one** |
@@ -59,9 +59,10 @@ arguments. One row per key.
 | `n_genes` | rows in `genes` |
 | `n_variants` | rows in `variants` |
 | `n_consequences` | transcript-level consequence rows seen — **not stored**, see below |
+| `n_variant_genes` | rows in `variant_genes`: one per (SNP, gene) |
 | `built_with` | the pipeline shape that produced it |
 | `served_from` | `single-sqlite` — this file is both the served store and the R/qtl2 file |
-| `csq_model` | `per-variant bitmask` — how consequences are represented |
+| `csq_model` | `per-variant bitmask + per-gene bitmask (variant_genes)` — how consequences are represented (`per-variant bitmask` before `compact-v2`) |
 
 `n_consequences` is deliberately a record of something the file does **not** contain: the
 110 M transcript-level consequence rows that were folded into each variant's `csq_mask` as
@@ -503,7 +504,54 @@ on exactly the same size). Nothing depends on physical order: every query and R/
 range query go through the `chr_pos` index, and nothing in the codebase does
 `ORDER BY rowid`.
 
+### The compact-v2 rebuild: every gene per SNP (2026-11-04)
+
+Both releases were rebuilt to add `variant_genes`, the per-gene consequences that
+`variants` folds into one gene (see
+[ARCHITECTURE.md](ARCHITECTURE.md#variant_genes--every-gene-at-a-snp-schema-compact-v2)).
+The requirement was that R/qtl2 see **exactly** the same data, so the rebuilt files were
+compared against production with `scripts/compare_builds.sh`, checked with
+`scripts/check_variant_genes.py`, and read through R/qtl2 itself with
+`scripts/check_rqtl2_same.R`:
+
+| | release 2021 (GRCm39) | release 1505 (GRCm38) |
+|---|--:|--:|
+| `variants` rows, production / rebuilt | 35,805,856 / 35,805,856 | 36,218,870 / 36,218,870 |
+| key pairs matched 1:1, no orphans | ✓ | ✓ |
+| **`variants` rows differing on any of the 12 columns** | **0** | **0** |
+| stored schema of every production object (`variants`, `chr_pos`, …) | identical | identical |
+| objects added | `variant_genes`, `gi_id` | `variant_genes`, `gi_id` |
+| `genes`, `so_terms` | 0 diffs | 0 diffs |
+| `create_variant_query_func()`, no overrides: data frames, old vs new | identical (chr1, chr2:50–60, chr11:100–102, chr19, chrX; 5.1 M rows) | identical (same windows plus chrY, chrMT; 5.2 M rows) |
+| `index_snps()` on chr11:100–102 Mb | 29,151 SNPs → 204 index SNPs | 28,907 → 226 |
+| `variant_genes` rows | 24,812,793 | 21,041,348 |
+| distinct genes in it | 53,650 | 41,773 |
+| SNPs in 2+ gene bodies | 994,882 (2.8%) | 681,452 (1.9%) |
+| SNPs with 2+ genes, counting 5 kb flanks | 3,685,106 (10.3%) | 2,563,444 (7.1%) |
+| per-gene invariants (`check_variant_genes.py`, all 5) | ✓ | ✓ |
+| file size, compact-v1 → v2 | 4.27 → **5.28 GB** | 4.27 → **5.13 GB** |
+| parse time | 57.5 min | 56.2 min |
+
+`meta` differs only where it should: `created`, `schema_version` (`compact-v2`),
+`csq_model`, and the new `n_variant_genes`.
+
+Query speed on the full GRCm39 file, in-process, is unchanged for normal searches (10–35 ms
+for a gene or a 2,000-row window); the 25,000-row maximum takes ~0.6 s, of which ~0.15 s
+is attaching genes. Over HTTP, the larger responses first made `/variants` ~40% slower
+(FastAPI's JSON encoder); serializing with the stdlib encoder instead made it ~45% faster
+than before the change (2,000 rows: ≈78 → 43 ms). That depends on the `gi_id` index: without it each symbol lookup scans `genes`, and
+the same query took 71 s on a chr19 prototype.
+
+**A gap this made visible, not one it caused:** VEP annotated some genes that the baked-in
+ensimpl gene list lacks, so they have no symbol and show as Ensembl IDs. In `variant_genes`
+that's 1,428 gene IDs on GRCm39 and 3,747 on GRCm38 (Ensembl 75's list is the thinner one).
+Production already had it in `variants.ensembl_gene`: 885 genes on 63,198 SNPs (GRCm39) and
+3,655 genes on 667,716 SNPs (GRCm38) show only an ID today.
+
 ### Why 4.27 GB, and what it is not
+
+(Written for schema `compact-v1`. `compact-v2` adds `variant_genes`, about 1 GB per release;
+the reasoning below is unchanged.)
 
 SQLite's row store is the floor here, and the honest history is worth recording because the
 size was mis-estimated twice during design — ~1.3 GB was predicted, ~4 GB is real. A row

@@ -5,6 +5,90 @@ Notable changes, newest first. The topical documents carry the *why* in depth �
 data provenance and validation, [DEPLOYMENT.md](DEPLOYMENT.md) for operations. This file is
 the chronology, so those documents do not have to read like a diary.
 
+## 2026-11-04 (0.2.0): every gene per SNP (schema compact-v2)
+
+### Added: every gene at a SNP, each with its own consequence
+
+`variants` stores one gene per SNP, the gene of the single most severe consequence. Genes
+overlap, so that hid the rest: on GRCm39, 2.8% of SNPs are in more than one gene body and
+10.3% have more than one gene counting VEP's 5 kb flanks. At rs37654964 the UI showed
+"synonymous · ENSMUSG00000110949" (Nudt8). The SNP is also synonymous in Gm49405 (Nudt8
+only won a tie, on CSQ order) and in an exon of the lncRNA Gm16312. Gene searches misled
+too: searching Gm49405 listed consequences that were really about Nudt8.
+
+- **Build:** the CSQ loop also ORs each term into its gene's own mask, written to a new
+  `variant_genes(chr, pos, ensembl_gene, csq_mask)` table (24.8 M rows on GRCm39, 21.0 M
+  on GRCm38). Plus a unique index on `genes(ensembl_id)` for symbols. Schema `compact-v2`.
+- **R/qtl2: unchanged.** `variants`, its index and every row are identical to production
+  in both releases, and `create_variant_query_func()` returns identical data frames. See
+  [DATABASES.md](DATABASES.md#the-compact-v2-rebuild-every-gene-per-snp-2026-11-04).
+- **API:** each variant gains `genes` (every gene, its own most severe consequence,
+  impact, all its terms, and `near` for flank-only) and `gene_symbol`. `max_csq` and
+  `gene_id` are unchanged, and `genes[0]` always agrees with them. A `gene=` search also
+  returns the locus searched as `data.gene`. CSV/TSV exports gain `gene_symbol` and
+  `genes` columns. Files built before compact-v2 are still served, with the one stored
+  gene.
+- **API: every consequence term too.** Each variant gains `consequences`, all the SO
+  terms in its `csq_mask`, most severe first (exports: a `consequences` column). The UI
+  shows the extra terms as "+N", e.g. "synonymous_variant +5", as MUSTER does.
+- **API: faster.** `/variants` now serializes its JSON with the stdlib encoder instead
+  of FastAPI's, which walked every nested object in Python and cost more than the query.
+  A 2,000-row search is ~45% faster than before over HTTP (≈78 → 43 ms), despite
+  carrying the gene lists. The rest of the UI's ~0.7 s for 2,000 rows is the browser
+  drawing the table, unchanged.
+- **UI:** the gene column lists symbols, not IDs: two, then "+N", with nearby-only genes
+  faded and every gene's consequences on hover. A gene search shows the consequence *in
+  that gene*, adding "· more severe in X" when the SNP's worst effect is elsewhere.
+- **Size:** 4.27 → 5.28 GB (GRCm39), 4.27 → 5.13 GB (GRCm38).
+- Tests: 236 → 269.
+
+### Added: a hover card in the results table
+
+The UI's details were native `title` tooltips: slow to appear, unstyled, one per cell.
+They're replaced by one floating card, after MUSTER's genotype-grid tooltip, built from
+the row's data when the pointer enters a cell:
+
+- **a founder's base:** the strain, its call (reference/alternate), confidence, site,
+  alleles, reference, variant ID, consequence and gene, with the founder's column
+  highlighted;
+- **consequence or genes:** every consequence at the SNP, then gene by gene with each
+  gene's own terms, Ensembl ID and "nearby" flag (up to 8 genes; the rest are counted);
+- **SDP/SDPN:** which founders carry which allele;
+- **column headers:** what the column means.
+
+Terms use their readable names ("Synonymous variant") with an impact dot. The table no
+longer carries thousands of `title` attributes.
+
+### Added: NDJSON export
+
+`format=ndjson` (and an NDJSON button): JSON Lines, one complete variant per line, with
+its `genes` and `consequences` nested, which CSV can only flatten. Reads line by line with
+`jq`, `pandas.read_json(lines=True)` and R's `jsonlite::stream_in()` (each checked on a
+real export). JSON-LD was considered and kept out of the API; see ARCHITECTURE.md's
+decisions log.
+
+### Changed: ambiguous gene symbols are refused, not guessed
+
+`gene=U6` used to resolve to whichever of U6's 486 loci SQLite returned first, with no
+sign that there were others. About 110 GRCm39 symbols name several loci, nearly all
+multi-copy small RNAs. Now:
+
+- `gene=` also takes an Ensembl gene ID (`ENSMUSG…`).
+- An ambiguous symbol gets **409** with the candidate loci (first 50, in genome order). An
+  exact-case match wins over case-insensitive ones (`Mir1a` vs `MIR1A`).
+- The UI offers the loci as buttons; picking one searches its Ensembl ID, so the link is
+  unambiguous. The autocomplete does the same when a symbol appears twice in its list.
+
+### Tooling
+
+- `scripts/check_variant_genes.py`: checks `variant_genes` against `variants` on a built
+  file (stdlib only, streaming, about 3 min per release).
+- `scripts/check_rqtl2_same.R`: R/qtl2's view of two files must be identical.
+- `scripts/compare_builds.sh` now expects the compact-v2 additions and still requires
+  every production object to be byte-identical.
+- The new tests include `parse_chrom` on a stub VCF record, so the
+  per-gene masks are tested without the 24 GB VCF.
+
 ## Unreleased (docs only)
 
 ### DATABASES.md: why VCF `FILTER` is ignored; multiallelic sites across releases

@@ -260,8 +260,8 @@ Then build and push in one step:
 ```bash
 docker login                     # needs push rights to the target registry namespace
 docker buildx build --platform linux/amd64,linux/arm64 \
-  -t churchilllab/foundervariants:0.1.6 --push .
-docker buildx imagetools inspect churchilllab/foundervariants:0.1.6   # confirm both platforms
+  -t churchilllab/foundervariants:0.2.0 --push .
+docker buildx imagetools inspect churchilllab/foundervariants:0.2.0   # confirm both platforms
 ```
 
 Bump the tag per release rather than moving an existing one — a moved tag makes "what is
@@ -302,7 +302,7 @@ mkdir -p /srv/foundervariants && cd /srv/foundervariants
 A minimal server `.env`:
 
 ```bash
-IMAGE_NAME=churchilllab/foundervariants:0.1.6
+IMAGE_NAME=churchilllab/foundervariants:0.2.0
 HOST_PORT=28224                        # must be free; check first
 HOST_DB_DIR=/srv/foundervariants/dbs   # absolute path to the copied databases
 FV_DB_DIR=/data/dbs                    # mount point inside the container
@@ -425,7 +425,7 @@ docker compose -f compose.prod.yaml down        # stop and remove
 
 ```bash
 # on the dev machine: build and push a new tag, then on the server
-sed -i 's/foundervariants:0.1.5/foundervariants:0.1.6/' .env
+sed -i 's/foundervariants:0.1.6/foundervariants:0.2.0/' .env
 docker compose -f compose.prod.yaml pull
 docker compose -f compose.prod.yaml up -d       # recreates with the new image
 ```
